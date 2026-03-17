@@ -1,6 +1,9 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column,
-  CreateDateColumn, UpdateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('users')
@@ -17,8 +20,8 @@ export class User {
   @Column()
   passwordHash: string;
 
-  @Column({ nullable: true })
-  refreshTokenHash: string;
+  @Column({ nullable: true, type: 'text' })
+  refreshTokenHash: string | null;
 
   @CreateDateColumn()
   createdAt: Date;
