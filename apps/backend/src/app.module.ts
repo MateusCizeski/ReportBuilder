@@ -3,14 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { DatasourcesModule } from './datasources/datasources.module';
 import { EncryptionModule } from './encryption/encryption.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -27,6 +25,7 @@ import { EncryptionModule } from './encryption/encryption.module';
     EncryptionModule,
     UsersModule,
     AuthModule,
+    DatasourcesModule,
   ],
 })
 export class AppModule {}
