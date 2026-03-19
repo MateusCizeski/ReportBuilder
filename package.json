@@ -1,12 +1,12 @@
 {
-  "name": "querycraft",
+  "name": "reportbuilder",
   "private": true,
   "workspaces": [
     "apps/*"
   ],
   "scripts": {
-    "dev:api": "npm run start:dev --workspace=apps/api",
-    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:api": "cd apps/backend && npm run start:dev",
+    "dev:web": "cd apps/frontend && npm run dev",
     "dev": "npm-run-all --parallel dev:api dev:web"
   },
   "devDependencies": {
