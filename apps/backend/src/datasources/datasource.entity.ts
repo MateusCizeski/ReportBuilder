@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../users/user.entity';
+import { Workspace } from '../workspaces/workspace.entity';
 
 export type DatasourceType = 'postgresql' | 'mysql' | 'mssql';
 
@@ -46,6 +47,13 @@ export class Datasource {
 
   @Column()
   userId: string;
+
+  @ManyToOne(() => Workspace, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'workspaceId' })
+  workspace: Workspace;
+
+  @Column({ nullable: true })
+  workspaceId: string | null;
 
   @CreateDateColumn()
   createdAt: Date;
