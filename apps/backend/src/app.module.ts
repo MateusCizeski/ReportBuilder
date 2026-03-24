@@ -5,12 +5,15 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DatasourcesModule } from './datasources/datasources.module';
 import { EncryptionModule } from './encryption/encryption.module';
+import { QueriesModule } from './queries/queries.module';
+import { WorkspacesModule } from './workspaces/workspaces.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: [`${process.cwd()}/apps/backend/.env`, '.env'],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -28,7 +31,10 @@ import { EncryptionModule } from './encryption/encryption.module';
     EncryptionModule,
     UsersModule,
     AuthModule,
+    WorkspacesModule,
     DatasourcesModule,
+    QueriesModule,
+    AiModule,
   ],
 })
 export class AppModule {}
