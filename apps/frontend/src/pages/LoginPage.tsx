@@ -21,7 +21,7 @@ export function LoginPage() {
       setTokens(data.accessToken, data.refreshToken);
       const me = await api.get("/auth/me");
       setUser(me.data);
-      navigate("/datasources");
+      navigate("/");
     } catch (err: any) {
       setError(err.response?.data?.message ?? "Erro ao fazer login");
     } finally {
