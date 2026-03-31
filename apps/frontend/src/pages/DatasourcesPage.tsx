@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/axios";
-import { useAuthStore } from "../store/auth.store";
+import { Topbar } from "../components/layout/Topbar";
 
 interface Datasource {
   id: string;
@@ -39,6 +39,7 @@ const EMPTY_FORM = {
 };
 
 export function DatasourcesPage() {
+  const { workspaceId } = useParams<{ workspaceId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { name, logout } = useAuthStore();
@@ -115,6 +116,19 @@ export function DatasourcesPage() {
 
   return (
     <div className="min-h-screen bg-muted">
+      <Topbar
+        title="Fontes de dados"
+        back={{ label: "Workspaces", to: "/" }}
+        actions={
+          <button
+            onClick={() => navigate(`/workspaces/${workspaceId}/datasources`)}
+            className="text-xs px-3 py-1.5 border border-border rounded-md text-muted-foreground hover:text-foreground transition-colors"
+          >
+            + Adicionar
+          </button>
+        }
+      />
+
       <div className="h-11 bg-background border-b border-border flex items-center px-5 gap-3">
         <span className="text-sm font-medium">ReportBuilder</span>
         <div className="flex-1" />
