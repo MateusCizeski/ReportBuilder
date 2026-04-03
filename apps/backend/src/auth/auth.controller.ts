@@ -8,7 +8,7 @@ import { User } from '../users/user.entity';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private auth: AuthService) { }
+  constructor(private auth: AuthService) {}
 
   @Post('register')
   register(@Body() dto: RegisterDto) {
@@ -34,7 +34,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   me(@CurrentUser() user: User) {
-    const { passwordHash, refreshTokenHash, ...safe } = user;
+    const { ...safe } = user;
     return safe;
   }
 }

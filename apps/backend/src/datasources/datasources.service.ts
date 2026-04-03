@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -58,7 +57,7 @@ export class DatasourcesService {
     const ds = await this.findOne(id, userId);
 
     if (dto.password) {
-      (ds as any).passwordEncrypted = this.encryption.encrypt(dto.password);
+      ds.passwordEncrypted = this.encryption.encrypt(dto.password);
     }
 
     Object.assign(ds, {
@@ -94,10 +93,10 @@ export class DatasourcesService {
         message: 'Conexão bem-sucedida',
         latencyMs: Date.now() - start,
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       return {
         ok: false,
-        message: err.message ?? 'Erro desconhecido',
+        message: err instanceof Error ? err.message : 'Erro desconhecido',
         latencyMs: Date.now() - start,
       };
     }
@@ -107,8 +106,12 @@ export class DatasourcesService {
     const ds = await this.findOne(id, userId);
     try {
       return await this.connectionManager.getSchema(ds);
-    } catch (err: any) {
-      throw new BadRequestException(`Erro ao ler schema: ${err.message}`);
+    } catch (err: unknown) {
+      return {
+        ok: false,
+        message: err instanceof Error ? err.message : 'Erro desconhecido',
+        latencyMs: Date.now(),
+      };
     }
   }
 }

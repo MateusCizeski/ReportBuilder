@@ -3,6 +3,12 @@ import { knex, Knex } from 'knex';
 import { EncryptionService } from '../encryption/encryption.service';
 import { Datasource } from './datasource.entity';
 
+type SchemaRow = {
+  table_name: string;
+  column_name: string;
+  data_type: string;
+};
+
 @Injectable()
 export class ConnectionManager implements OnModuleDestroy {
   private readonly logger = new Logger(ConnectionManager.name);
@@ -61,14 +67,29 @@ export class ConnectionManager implements OnModuleDestroy {
            WHERE table_schema = ${datasource.type === 'mysql' ? 'DATABASE()' : "'public'"}
            ORDER BY table_name, ordinal_position`;
 
-    const result = await conn.raw(schemaQuery);
-    const rows = datasource.type === 'postgresql' ? result.rows : result[0];
+    const result = await conn.raw<SchemaRow[]>(schemaQuery);
+    let rows: SchemaRow[];
+
+    if (datasource.type === 'postgresql') {
+      rows = (result as unknown as { rows: SchemaRow[] }).rows;
+    } else {
+      rows = result as unknown as SchemaRow[];
+    }
 
     return rows.reduce(
-      (acc: Record<string, { name: string; type: string }[]>, row: any) => {
+      (
+        acc: Record<string, { name: string; type: string }[]>,
+        row: SchemaRow,
+      ) => {
         const table = row.table_name;
+
         if (!acc[table]) acc[table] = [];
-        acc[table].push({ name: row.column_name, type: row.data_type });
+
+        acc[table].push({
+          name: row.column_name,
+          type: row.data_type,
+        });
+
         return acc;
       },
       {},
