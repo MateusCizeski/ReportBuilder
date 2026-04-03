@@ -5,9 +5,9 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DatasourcesModule } from './datasources/datasources.module';
 import { EncryptionModule } from './encryption/encryption.module';
-import { QueriesModule } from './queries/queries.module';
+// import { QueriesModule } from './queries/queries.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
-import { AiModule } from './ai/ai.module';
+import { AiModule } from './ia/ai.module';
 
 @Module({
   imports: [
@@ -33,7 +33,7 @@ import { AiModule } from './ai/ai.module';
     AuthModule,
     WorkspacesModule,
     DatasourcesModule,
-    QueriesModule,
+    // QueriesModule,
     AiModule,
   ],
 })

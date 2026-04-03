@@ -10,18 +10,50 @@ import { ChatDto } from './dto/chat.dto';
 
 const BLOCKED =
   /\b(DROP|DELETE|UPDATE|INSERT|TRUNCATE|ALTER|CREATE|GRANT|REVOKE)\b/i;
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { BusinessContext } from './business-context.entity';
-import { ConnectionManager } from '../datasources/connection-manager.service';
-import { DatasourcesService } from '../datasources/datasources.service';
-import { SaveContextDto } from './dto/save-context.dto';
-import { ChatDto } from './dto/chat.dto';
 
-const BLOCKED =
-  /\b(DROP|DELETE|UPDATE|INSERT|TRUNCATE|ALTER|CREATE|GRANT|REVOKE)\b/i;
+type GeminiResponse = {
+  candidates?: {
+    content?: {
+      parts?: {
+        text?: string;
+      }[];
+    };
+  }[];
+};
+
+type AiQueryResponse = {
+  type: 'query';
+  sql: string;
+  explanation: string;
+  rows?: unknown[];
+  rowCount?: number;
+  executionMs?: number;
+};
+
+type AiQuestionResponse = {
+  type: 'question';
+  content: string;
+};
+
+type AiErrorResponse = {
+  type: 'error';
+  content: string;
+};
+
+type AiTextResponse = {
+  type: 'text';
+  content: string;
+};
+
+type AiResponse =
+  | AiQueryResponse
+  | AiQuestionResponse
+  | AiErrorResponse
+  | AiTextResponse;
+
+type QueryResult = {
+  rows: unknown[];
+};
 
 @Injectable()
 export class AiService {
@@ -73,33 +105,42 @@ explicando o que ela representa no contexto de negócio.
 Retorne APENAS um JSON válido no formato: {"nome_tabela": "descrição"}
 
 Schema:
-${tableNames.map((t) => `- ${t}: ${schema[t].map((c) => c.name).join(', ')}`).join('\n')}`;
+${tableNames
+  .map((t) => `- ${t}: ${schema[t].map((c) => c.name).join(', ')}`)
+  .join('\n')}`;
 
     const result = await this.callGemini(prompt);
 
     try {
       const cleaned = result.replace(/```json|```/g, '').trim();
-      return JSON.parse(cleaned);
+      return JSON.parse(cleaned) as Record<string, string>;
     } catch {
       return {};
     }
   }
 
-  async chat(dto: ChatDto, userId: string) {
+  async chat(dto: ChatDto, userId: string): Promise<AiResponse> {
     const ds = await this.datasourcesService.findOne(dto.datasourceId, userId);
+
     const schema = await this.connectionManager.getSchema(ds);
     const contexts = await this.getContexts(dto.datasourceId);
 
     const schemaText = Object.entries(schema)
       .map(([table, cols]) => {
         const ctx = contexts.find((c) => c.tableName === table);
+
         const colDescs = cols
           .map((col) => {
             const colDesc = ctx?.columnDescriptions?.[col.name];
-            return `  - ${col.name} (${col.type})${colDesc ? `: ${colDesc}` : ''}`;
+            return `  - ${col.name} (${col.type})${
+              colDesc ? `: ${colDesc}` : ''
+            }`;
           })
           .join('\n');
-        return `Tabela: ${table}${ctx ? `\nDescrição: ${ctx.description}` : ''}\nColunas:\n${colDescs}`;
+
+        return `Tabela: ${table}${
+          ctx ? `\nDescrição: ${ctx.description}` : ''
+        }\nColunas:\n${colDescs}`;
       })
       .join('\n\n');
 
@@ -133,7 +174,7 @@ ${historyText ? `HISTÓRICO DA CONVERSA:\n${historyText}` : ''}`;
 
     try {
       const cleaned = response.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
+      const parsed = JSON.parse(cleaned) as AiResponse;
 
       if (parsed.type === 'query') {
         if (BLOCKED.test(parsed.sql)) {
@@ -145,8 +186,17 @@ ${historyText ? `HISTÓRICO DA CONVERSA:\n${historyText}` : ''}`;
 
         const conn = this.connectionManager.getConnection(ds);
         const start = Date.now();
-        const result = await conn.raw(parsed.sql);
-        const rows = ds.type === 'postgresql' ? result.rows : result[0];
+
+        const rawResult = await conn.raw(parsed.sql);
+
+        let rows: unknown[] = [];
+
+        if (ds.type === 'postgresql') {
+          rows = (rawResult as QueryResult).rows;
+        } else {
+          const resultArray = rawResult as unknown[];
+          rows = Array.isArray(resultArray[0]) ? resultArray[0] : [];
+        }
 
         return {
           type: 'query',
@@ -188,7 +238,8 @@ ${historyText ? `HISTÓRICO DA CONVERSA:\n${historyText}` : ''}`;
       throw new BadRequestException('Erro ao chamar a IA. Tente novamente.');
     }
 
-    const data = (await response.json()) as any;
+    const data = (await response.json()) as GeminiResponse;
+
     return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   }
 }

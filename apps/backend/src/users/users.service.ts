@@ -9,7 +9,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private repo: Repository<User>,
-  ) { }
+  ) {}
 
   async create(email: string, name: string, password: string): Promise<User> {
     const exists = await this.repo.findOneBy({ email });

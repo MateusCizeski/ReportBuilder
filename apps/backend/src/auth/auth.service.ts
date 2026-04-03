@@ -1,6 +1,4 @@
-import {
-  Injectable, UnauthorizedException, BadRequestException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -14,7 +12,7 @@ export class AuthService {
     private users: UsersService,
     private jwt: JwtService,
     private config: ConfigService,
-  ) { }
+  ) {}
 
   async register(dto: RegisterDto) {
     const user = await this.users.create(dto.email, dto.name, dto.password);
