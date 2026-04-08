@@ -1,19 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/axios";
 import { Topbar } from "../components/layout/Topbar";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { Button } from "../components/ui/Button";
+import { QueryResult } from "../components/data/QueryResult";
 
 interface Message {
   id: string;
@@ -27,113 +18,66 @@ interface Message {
   explanation?: string;
 }
 
-function ResultChart({ rows }: { rows: Record<string, any>[] }) {
-  if (!rows || rows.length === 0) return null;
-  const keys = Object.keys(rows[0]);
-  const numericKeys = keys.filter((k) => typeof rows[0][k] === "number");
-  const labelKey = keys.find((k) => typeof rows[0][k] === "string") ?? keys[0];
-  const valueKey = numericKeys[0];
-  if (!valueKey) return null;
-
-  const isTimeSeries =
-    labelKey.toLowerCase().includes("date") ||
-    labelKey.toLowerCase().includes("month") ||
-    labelKey.toLowerCase().includes("mes");
-
-  const data = rows.slice(0, 20).map((r) => ({
-    name: String(r[labelKey]).substring(0, 12),
-    value: Number(r[valueKey]),
-  }));
-
-  return (
-    <div className="mt-3 h-48">
-      <ResponsiveContainer width="100%" height="100%">
-        {isTimeSeries ? (
-          <LineChart data={data}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--color-border-tertiary)"
-            />
-            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 10 }} />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#1D9E75"
-              strokeWidth={1.5}
-              dot={false}
-            />
-          </LineChart>
-        ) : (
-          <BarChart data={data}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--color-border-tertiary)"
-            />
-            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 10 }} />
-            <Tooltip />
-            <Bar dataKey="value" fill="#1D9E75" radius={[3, 3, 0, 0]} />
-          </BarChart>
-        )}
-      </ResponsiveContainer>
-    </div>
-  );
+interface SaveReportModalProps {
+  message: Message;
+  onSave: (name: string) => void;
+  onClose: () => void;
+  saving: boolean;
 }
 
-function ResultTable({ rows }: { rows: Record<string, any>[] }) {
-  if (!rows || rows.length === 0) return null;
-  const columns = Object.keys(rows[0]);
+function SaveReportModal({
+  message,
+  onSave,
+  onClose,
+  saving,
+}: SaveReportModalProps) {
+  const [name, setName] = useState("");
   return (
-    <div className="mt-3 overflow-auto max-h-48 rounded-md border border-border">
-      <table className="w-full border-collapse text-xs">
-        <thead className="sticky top-0">
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={col}
-                className="text-left px-3 py-2 font-medium text-muted-foreground bg-muted border-b border-border whitespace-nowrap text-[11px] uppercase tracking-wide"
-              >
-                {col}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.slice(0, 50).map((row, i) => (
-            <tr
-              key={i}
-              className="border-b border-border last:border-0 hover:bg-muted/50"
-            >
-              {columns.map((col) => (
-                <td
-                  key={col}
-                  className="px-3 py-1.5 whitespace-nowrap text-foreground"
-                >
-                  {row[col] === null ? (
-                    <span className="text-muted-foreground italic">null</span>
-                  ) : (
-                    String(row[col])
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-background border border-border rounded-xl p-6 w-full max-w-sm flex flex-col gap-4 shadow-lg">
+        <div>
+          <h3 className="text-sm font-medium">Salvar relatório</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Dê um nome para este relatório para acessá-lo depois.
+          </p>
+        </div>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="ex: Vendas de março, Top clientes..."
+          className="px-3 py-2 border border-border rounded-md text-sm outline-none focus:border-foreground transition-colors bg-background"
+          autoFocus
+        />
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onClose}
+            className="flex-1"
+          >
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => onSave(name)}
+            loading={saving}
+            disabled={!name.trim()}
+            className="flex-1"
+          >
+            Salvar
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
 
 function MessageBubble({
   message,
-  onSqlToggle,
-  showSql,
+  onSaveClick,
 }: {
   message: Message;
-  onSqlToggle: () => void;
-  showSql: boolean;
+  onSaveClick?: () => void;
 }) {
   const isUser = message.role === "user";
 
@@ -151,7 +95,7 @@ function MessageBubble({
     <div className="flex justify-start">
       <div className="max-w-2xl w-full">
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center text-[11px] font-medium text-muted-foreground">
+          <div className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center text-[10px] font-medium text-muted-foreground">
             IA
           </div>
           <span className="text-xs text-muted-foreground">
@@ -165,57 +109,25 @@ function MessageBubble({
         </div>
 
         <div className="bg-background border border-border rounded-2xl rounded-tl-sm p-4">
+          {message.type === "error" && (
+            <p className="text-sm text-red-600">{message.content}</p>
+          )}
+          {(message.type === "question" || message.type === "text") && (
+            <p className="text-sm text-foreground">{message.content}</p>
+          )}
           {message.explanation && (
             <p className="text-sm text-foreground mb-3">
               {message.explanation}
             </p>
           )}
-
-          {message.type === "question" && (
-            <p className="text-sm text-foreground">{message.content}</p>
-          )}
-
-          {message.type === "error" && (
-            <p className="text-sm text-red-600">{message.content}</p>
-          )}
-
-          {message.type === "text" && (
-            <p className="text-sm text-foreground">{message.content}</p>
-          )}
-
-          {message.rows && message.rows.length > 0 && (
-            <>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">
-                  {message.rowCount}{" "}
-                  {message.rowCount === 1 ? "resultado" : "resultados"}
-                </span>
-              </div>
-              <ResultChart rows={message.rows} />
-              <ResultTable rows={message.rows} />
-            </>
-          )}
-
-          {message.rows && message.rows.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Nenhum resultado encontrado.
-            </p>
-          )}
-
-          {message.sql && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <button
-                onClick={onSqlToggle}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showSql ? "Ocultar SQL" : "Ver SQL gerado"}
-              </button>
-              {showSql && (
-                <pre className="mt-2 p-3 bg-muted rounded-md text-xs font-mono text-foreground overflow-auto">
-                  {message.sql}
-                </pre>
-              )}
-            </div>
+          {message.rows !== undefined && (
+            <QueryResult
+              rows={message.rows}
+              rowCount={message.rowCount ?? 0}
+              executionMs={message.executionMs}
+              sql={message.sql}
+              onSave={onSaveClick}
+            />
           )}
         </div>
       </div>
@@ -228,10 +140,11 @@ export function ChatPage() {
     workspaceId: string;
     datasourceId: string;
   }>();
+  const queryClient = useQueryClient();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sqlVisible, setSqlVisible] = useState<Record<string, boolean>>({});
+  const [savingMessage, setSavingMessage] = useState<Message | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const { data: datasource } = useQuery({
@@ -239,35 +152,47 @@ export function ChatPage() {
     queryFn: () => api.get(`/datasources/${datasourceId}`).then((r) => r.data),
   });
 
+  const saveReportMutation = useMutation({
+    mutationFn: ({ name, message }: { name: string; message: Message }) =>
+      api.post("/reports", {
+        name,
+        sql: message.sql,
+        datasourceId,
+        workspaceId,
+        rows: message.rows,
+        rowCount: message.rowCount,
+        executionMs: message.executionMs,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reports", workspaceId] });
+      setSavingMessage(null);
+    },
+  });
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loading]);
 
   async function handleSend() {
     if (!input.trim() || loading) return;
-
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
       content: input,
     };
-
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
-
     try {
       const history = messages.map((m) => ({
         role: m.role,
         content: m.content,
       }));
-
       const { data } = await api.post("/ai/chat", {
         datasourceId,
         message: input,
         history,
       });
-
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -279,7 +204,6 @@ export function ChatPage() {
         executionMs: data.executionMs,
         explanation: data.explanation,
       };
-
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err: any) {
       setMessages((prev) => [
@@ -287,8 +211,7 @@ export function ChatPage() {
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content:
-            err.response?.data?.message ?? "Erro ao processar sua mensagem.",
+          content: err.response?.data?.message ?? "Erro ao processar.",
           type: "error",
         },
       ]);
@@ -297,18 +220,11 @@ export function ChatPage() {
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  }
-
   const suggestions = [
-    "Quantos registros tem no banco?",
+    "Quantos registros existem no banco?",
     "Mostre os 10 primeiros registros",
-    "Qual o total por mês?",
-    "Quais são as tabelas disponíveis?",
+    "Qual o total agrupado por mês?",
+    "Quais tabelas estão disponíveis?",
   ];
 
   return (
@@ -321,17 +237,15 @@ export function ChatPage() {
           to: `/workspaces/${workspaceId}/datasources`,
         }}
         actions={
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() =>
-              window.open(
-                `/workspaces/${workspaceId}/context/${datasourceId}`,
-                "_self",
-              )
+              (window.location.href = `/workspaces/${workspaceId}/context/${datasourceId}`)
             }
-            className="text-xs px-3 py-1.5 border border-border rounded-md text-muted-foreground hover:text-foreground transition-colors"
           >
             Configurar contexto
-          </button>
+          </Button>
         }
       />
 
@@ -347,11 +261,10 @@ export function ChatPage() {
                   Pergunte sobre seus dados
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-sm">
-                  Descreva em português o que você quer ver. A IA vai buscar os
-                  dados e montar o relatório.
+                  Descreva em português o que quer ver. A IA busca os dados e
+                  monta o relatório.
                 </p>
               </div>
-
               <div className="grid grid-cols-2 gap-2 w-full max-w-lg">
                 {suggestions.map((s) => (
                   <button
@@ -370,9 +283,8 @@ export function ChatPage() {
             <MessageBubble
               key={msg.id}
               message={msg}
-              showSql={sqlVisible[msg.id] ?? false}
-              onSqlToggle={() =>
-                setSqlVisible((prev) => ({ ...prev, [msg.id]: !prev[msg.id] }))
+              onSaveClick={
+                msg.rows?.length ? () => setSavingMessage(msg) : undefined
               }
             />
           ))}
@@ -381,18 +293,13 @@ export function ChatPage() {
             <div className="flex justify-start">
               <div className="bg-background border border-border rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
                 <div className="flex gap-1">
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
-                    style={{ animationDelay: "0ms" }}
-                  />
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
-                    style={{ animationDelay: "150ms" }}
-                  />
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
-                    style={{ animationDelay: "300ms" }}
-                  />
+                  {[0, 150, 300].map((delay) => (
+                    <div
+                      key={delay}
+                      className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
+                      style={{ animationDelay: `${delay}ms` }}
+                    />
+                  ))}
                 </div>
                 <span className="text-xs text-muted-foreground">
                   Analisando...
@@ -400,43 +307,56 @@ export function ChatPage() {
               </div>
             </div>
           )}
-
           <div ref={bottomRef} />
         </div>
       </div>
 
       <div className="border-t border-border p-4 bg-background flex-shrink-0">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex gap-2 items-end">
-            <div className="flex-1 border border-border rounded-xl overflow-hidden focus-within:border-foreground transition-colors">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Descreva o que você quer ver nos dados..."
-                rows={1}
-                className="w-full px-4 py-3 text-sm outline-none resize-none bg-background text-foreground placeholder:text-muted-foreground"
-                style={{ maxHeight: "120px" }}
-                onInput={(e) => {
-                  const t = e.target as HTMLTextAreaElement;
-                  t.style.height = "auto";
-                  t.style.height = Math.min(t.scrollHeight, 120) + "px";
-                }}
-              />
-            </div>
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || loading}
-              className="px-4 py-3 bg-primary text-primary-foreground rounded-xl text-sm font-medium disabled:opacity-40 transition-opacity flex-shrink-0"
-            >
-              Enviar
-            </button>
+        <div className="max-w-3xl mx-auto flex gap-2 items-end">
+          <div className="flex-1 border border-border rounded-xl overflow-hidden focus-within:border-foreground transition-colors">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder="Descreva o que você quer ver nos dados..."
+              rows={1}
+              className="w-full px-4 py-3 text-sm outline-none resize-none bg-background text-foreground placeholder:text-muted-foreground"
+              style={{ maxHeight: "120px" }}
+              onInput={(e) => {
+                const t = e.target as HTMLTextAreaElement;
+                t.style.height = "auto";
+                t.style.height = Math.min(t.scrollHeight, 120) + "px";
+              }}
+            />
           </div>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Enter para enviar · Shift+Enter para nova linha
-          </p>
+          <Button
+            onClick={handleSend}
+            disabled={!input.trim() || loading}
+            className="px-5 py-3 rounded-xl flex-shrink-0"
+          >
+            Enviar
+          </Button>
         </div>
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          Enter para enviar · Shift+Enter para nova linha
+        </p>
       </div>
+
+      {savingMessage && (
+        <SaveReportModal
+          message={savingMessage}
+          onSave={(name) =>
+            saveReportMutation.mutate({ name, message: savingMessage })
+          }
+          onClose={() => setSavingMessage(null)}
+          saving={saveReportMutation.isPending}
+        />
+      )}
     </div>
   );
 }
