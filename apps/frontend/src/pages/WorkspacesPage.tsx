@@ -156,9 +156,23 @@ export function WorkspacesPage() {
                   <Button
                     variant="secondary"
                     size="sm"
+                    onClick={() => navigate(`/workspaces/${ws.id}/reports`)}
+                  >
+                    Relatórios
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigate(`/workspaces/${ws.id}/dashboards`)}
+                  >
+                    Dashboards
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => navigate(`/workspaces/${ws.id}/datasources`)}
                   >
-                    Fontes de dados
+                    Fontes
                   </Button>
                   <Button
                     size="sm"
