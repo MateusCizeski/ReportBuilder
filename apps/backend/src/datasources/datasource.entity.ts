@@ -15,49 +15,49 @@ export type DatasourceType = 'postgresql' | 'mysql' | 'mssql';
 @Entity('datasources')
 export class Datasource {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ type: 'varchar' })
-  type: DatasourceType;
+  type!: DatasourceType;
 
   @Column()
-  host: string;
+  host!: string;
 
   @Column()
-  port: number;
+  port!: number;
 
   @Column()
-  database: string;
+  database!: string;
 
   @Column()
-  username: string;
+  username!: string;
 
   @Column()
-  passwordEncrypted: string;
+  passwordEncrypted!: string;
 
   @Column({ default: false })
-  useSsl: boolean;
+  useSsl!: boolean;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user!: User;
 
   @Column()
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => Workspace, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'workspaceId' })
-  workspace: Workspace;
+  workspace!: Workspace;
 
   @Column({ nullable: true })
-  workspaceId: string | null;
+  workspaceId!: string | null;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

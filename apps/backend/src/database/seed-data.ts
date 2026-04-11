@@ -54,7 +54,10 @@ async function seed() {
     )
   `);
 
-  const clientesCount = await db.query(`SELECT COUNT(*) FROM demo_clientes`);
+  const clientesCount = await db.query<{ count: string }[]>(
+    `SELECT COUNT(*) as count FROM demo_clientes`,
+  );
+
   if (parseInt(clientesCount[0].count) === 0) {
     await db.query(`
       INSERT INTO demo_clientes (nome, email, cidade, segmento) VALUES
@@ -84,7 +87,10 @@ async function seed() {
     )
   `);
 
-  const pedidosCount = await db.query(`SELECT COUNT(*) FROM demo_pedidos`);
+  const pedidosCount = await db.query<{ count: string }[]>(
+    `SELECT COUNT(*) as count FROM demo_pedidos`,
+  );
+
   if (parseInt(pedidosCount[0].count) === 0) {
     await db.query(`
       INSERT INTO demo_pedidos (cliente_id, produto, categoria, valor, status, criado_em) VALUES
@@ -120,7 +126,10 @@ async function seed() {
     )
   `);
 
-  const finCount = await db.query(`SELECT COUNT(*) FROM demo_financeiro`);
+  const finCount = await db.query<{ count: string }[]>(
+    `SELECT COUNT(*) as count FROM demo_financeiro`,
+  );
+
   if (parseInt(finCount[0].count) === 0) {
     await db.query(`
       INSERT INTO demo_financeiro (descricao, tipo, categoria, valor, data_lancamento) VALUES

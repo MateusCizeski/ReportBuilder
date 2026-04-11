@@ -3,18 +3,18 @@ import { Type } from 'class-transformer';
 
 export class ChatMessageDto {
   @IsString()
-  role: 'user' | 'assistant';
+  role!: 'user' | 'assistant';
 
   @IsString()
-  content: string;
+  content!: string;
 }
 
 export class ChatDto {
   @IsString()
-  datasourceId: string;
+  datasourceId!: string;
 
   @IsString()
-  message: string;
+  message!: string;
 
   @IsArray()
   @IsOptional()

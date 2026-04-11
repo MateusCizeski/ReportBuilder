@@ -14,50 +14,50 @@ import { Datasource } from '../datasources/datasource.entity';
 @Entity('reports')
 export class Report {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ type: 'text' })
-  sql: string;
+  sql!: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  rows: Record<string, any>[] | null;
+  rows!: Record<string, any>[] | null;
 
   @Column({ nullable: true })
-  rowCount: number;
+  rowCount!: number;
 
   @Column({ nullable: true })
-  executionMs: number;
+  executionMs!: number;
 
   @Column({ type: 'varchar', default: 'table' })
-  visualType: 'table' | 'bar' | 'line' | 'pie';
+  visualType!: 'table' | 'bar' | 'line' | 'pie';
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user!: User;
 
   @Column()
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => Workspace, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'workspaceId' })
-  workspace: Workspace;
+  workspace!: Workspace;
 
   @Column()
-  workspaceId: string;
+  workspaceId!: string;
 
   @ManyToOne(() => Datasource, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'datasourceId' })
-  datasource: Datasource;
+  datasource!: Datasource;
 
   @Column()
-  datasourceId: string;
+  datasourceId!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

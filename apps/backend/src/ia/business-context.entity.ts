@@ -12,27 +12,27 @@ import { Datasource } from '../datasources/datasource.entity';
 @Entity('business_contexts')
 export class BusinessContext {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Datasource, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'datasourceId' })
-  datasource: Datasource;
+  datasource!: Datasource;
 
   @Column()
-  datasourceId: string;
+  datasourceId!: string;
 
   @Column()
-  tableName: string;
+  tableName!: string;
 
   @Column({ type: 'text' })
-  description: string;
+  description!: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  columnDescriptions: Record<string, string> | null;
+  columnDescriptions!: Record<string, string> | null;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

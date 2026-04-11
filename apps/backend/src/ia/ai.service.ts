@@ -187,7 +187,7 @@ ${historyText ? `HISTÓRICO DA CONVERSA:\n${historyText}` : ''}`;
         const conn = this.connectionManager.getConnection(ds);
         const start = Date.now();
 
-        const rawResult = await conn.raw(parsed.sql);
+        const rawResult: unknown = await conn.raw(parsed.sql);
 
         let rows: unknown[] = [];
 

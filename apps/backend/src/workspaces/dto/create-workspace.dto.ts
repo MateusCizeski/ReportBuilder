@@ -3,7 +3,7 @@ import { IsString, MinLength, IsOptional } from 'class-validator';
 export class CreateWorkspaceDto {
   @IsString()
   @MinLength(1)
-  name: string;
+  name!: string;
 
   @IsString()
   @IsOptional()

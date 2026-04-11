@@ -13,36 +13,36 @@ import { Workspace } from '../workspaces/workspace.entity';
 @Entity('dashboards')
 export class Dashboard {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ type: 'jsonb', default: [] })
-  items: DashboardItem[];
+  items!: DashboardItem[];
 
   @Column({ type: 'jsonb', default: [] })
-  layout: LayoutItem[];
+  layout!: LayoutItem[];
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user!: User;
 
   @Column()
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => Workspace, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'workspaceId' })
-  workspace: Workspace;
+  workspace!: Workspace;
 
   @Column()
-  workspaceId: string;
+  workspaceId!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 export interface DashboardItem {

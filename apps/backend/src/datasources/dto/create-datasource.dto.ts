@@ -12,27 +12,27 @@ import {
 export class CreateDatasourceDto {
   @IsString()
   @MinLength(1)
-  name: string;
+  name!: string;
 
   @IsIn(['postgresql', 'mysql', 'mssql'])
-  type: 'postgresql' | 'mysql' | 'mssql';
+  type!: 'postgresql' | 'mysql' | 'mssql';
 
   @IsString()
-  host: string;
+  host!: string;
 
   @IsInt()
   @Min(1)
   @Max(65535)
-  port: number;
+  port!: number;
 
   @IsString()
-  database: string;
+  database!: string;
 
   @IsString()
-  username: string;
+  username!: string;
 
   @IsString()
-  password: string;
+  password!: string;
 
   @IsBoolean()
   @IsOptional()

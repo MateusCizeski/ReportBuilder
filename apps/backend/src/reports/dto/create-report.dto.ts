@@ -2,16 +2,16 @@ import { IsString, IsArray, IsOptional, IsNumber, IsIn } from 'class-validator';
 
 export class CreateReportDto {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsString()
-  sql: string;
+  sql!: string;
 
   @IsString()
-  datasourceId: string;
+  datasourceId!: string;
 
   @IsString()
-  workspaceId: string;
+  workspaceId!: string;
 
   @IsArray()
   @IsOptional()
