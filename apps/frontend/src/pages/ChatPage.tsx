@@ -12,7 +12,7 @@ interface Message {
   content: string;
   type?: "query" | "question" | "error" | "text";
   sql?: string;
-  rows?: Record<string, any>[];
+  rows?: Record<string, unknown>[];
   rowCount?: number;
   executionMs?: number;
   explanation?: string;
@@ -25,12 +25,7 @@ interface SaveReportModalProps {
   saving: boolean;
 }
 
-function SaveReportModal({
-  message,
-  onSave,
-  onClose,
-  saving,
-}: SaveReportModalProps) {
+function SaveReportModal({ onSave, onClose, saving }: SaveReportModalProps) {
   const [name, setName] = useState("");
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
@@ -205,13 +200,16 @@ export function ChatPage() {
         explanation: data.explanation,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        (err as any)?.response?.data?.message ?? "Erro ao processar.";
+
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: err.response?.data?.message ?? "Erro ao processar.",
+          content: errorMessage,
           type: "error",
         },
       ]);

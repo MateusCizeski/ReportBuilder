@@ -78,18 +78,6 @@ export function SqlEditor({ value, onChange, schema = {} }: SqlEditorProps) {
     });
   }
 
-  function insertText(text: string) {
-    if (!editorRef.current) return;
-    const selection = editorRef.current.getSelection();
-    editorRef.current.executeEdits("", [
-      {
-        range: selection,
-        text: text + " ",
-      },
-    ]);
-    editorRef.current.focus();
-  }
-
   return (
     <div className="h-full w-full">
       <Editor

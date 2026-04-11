@@ -1,8 +1,3 @@
-interface Column {
-  name: string;
-  type: string;
-}
-
 interface QueryResult {
   rows: Record<string, any>[];
   rowCount: number;

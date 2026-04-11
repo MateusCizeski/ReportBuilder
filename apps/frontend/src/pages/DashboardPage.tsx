@@ -1,18 +1,15 @@
 import { useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Responsive, WidthProvider, Layout } from "react-grid-layout";
+import { Responsive } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { api } from "../lib/axios";
 import { Topbar } from "../components/layout/Topbar";
 import { Button } from "../components/ui/Button";
-import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { DataChart } from "../components/data/DataChart";
 import { DataTable } from "../components/data/DataTable";
-
-const ResponsiveGrid = WidthProvider(Responsive);
 
 interface DashboardItem {
   id: string;
@@ -29,14 +26,6 @@ interface LayoutItem {
   h: number;
 }
 
-interface Dashboard {
-  id: string;
-  name: string;
-  items: DashboardItem[];
-  layout: LayoutItem[];
-  workspaceId: string;
-}
-
 interface Report {
   id: string;
   name: string;
@@ -50,7 +39,6 @@ interface Report {
 function DashboardBlock({
   item,
   onRemove,
-  onRefresh,
 }: {
   item: DashboardItem;
   onRemove: () => void;
@@ -84,7 +72,6 @@ function DashboardBlock({
 
   return (
     <div className="h-full flex flex-col bg-background border border-border rounded-lg overflow-hidden">
-      {/* Block header */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border flex-shrink-0 bg-muted/50">
         <span className="text-xs font-medium flex-1 truncate">
           {item.reportName}
@@ -104,7 +91,6 @@ function DashboardBlock({
         </button>
       </div>
 
-      {/* Block content */}
       <div className="flex-1 overflow-hidden p-2">
         {rows.length > 0 ? (
           item.visualType === "table" ? (
@@ -170,7 +156,6 @@ export function DashboardPage() {
     workspaceId: string;
     dashboardId: string;
   }>();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -193,14 +178,23 @@ export function DashboardPage() {
   });
 
   const handleLayoutChange = useCallback(
-    (layout: Layout[]) => {
+    (_layout: any, layouts: any) => {
       if (!dashboard) return;
+
+      const currentLayout = layouts.lg;
+
       updateMutation.mutate({
         items: dashboard.items,
-        layout: layout.map((l) => ({ i: l.i, x: l.x, y: l.y, w: l.w, h: l.h })),
+        layout: currentLayout.map((l: any) => ({
+          i: l.i,
+          x: l.x,
+          y: l.y,
+          w: l.w,
+          h: l.h,
+        })),
       });
     },
-    [dashboard],
+    [dashboard, updateMutation],
   );
 
   function handleAddReport(report: Report) {
@@ -278,15 +272,14 @@ export function DashboardPage() {
             />
           </div>
         ) : (
-          <ResponsiveGrid
+          <Responsive
             className="layout"
+            width={1200}
             layouts={{ lg: dashboard.layout }}
             breakpoints={{ lg: 1200, md: 996, sm: 768 }}
             cols={{ lg: 12, md: 10, sm: 6 }}
             rowHeight={60}
             onLayoutChange={handleLayoutChange}
-            isDraggable
-            isResizable
             margin={[12, 12]}
           >
             {dashboard.items.map((item: DashboardItem) => (
@@ -298,7 +291,7 @@ export function DashboardPage() {
                 />
               </div>
             ))}
-          </ResponsiveGrid>
+          </Responsive>
         )}
       </div>
 
