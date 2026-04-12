@@ -9,6 +9,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
 import { AiModule } from './ia/ai.module';
 import { ReportsModule } from './reports/reports.module';
 import { DashboardsModule } from './dashboards/dashboards.module';
+import { ExportsModule } from './exports/exports.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { DashboardsModule } from './dashboards/dashboards.module';
     ReportsModule,
     AiModule,
     DashboardsModule,
+    ExportsModule,
   ],
 })
 export class AppModule {}
