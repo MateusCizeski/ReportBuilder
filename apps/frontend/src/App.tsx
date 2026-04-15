@@ -10,6 +10,7 @@ import { ContextPage } from "./pages/ContextPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { DashboardsPage } from "./pages/DashboardsPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { PublicReportPage } from "./pages/PublicReportPage";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ export default function App() {
               path="/workspaces/:workspaceId/dashboards/:dashboardId"
               element={<DashboardPage />}
             />
+            <Route path="/public/:token" element={<PublicReportPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -119,6 +119,7 @@ function ReportCard({
               rowCount={result.rowCount}
               executionMs={result.executionMs}
               sql={report.sql}
+              reportId={report.id}
             />
           ) : (
             <div className="flex flex-col gap-3">
@@ -128,9 +129,10 @@ function ReportCard({
               </p>
               {report.rows && report.rows.length > 0 && (
                 <QueryResult
-                  rows={report.rows}
+                  rows={report.rows ?? []}
                   rowCount={report.rowCount}
                   sql={report.sql}
+                  reportId={report.id}
                 />
               )}
             </div>
